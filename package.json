@@ -4,7 +4,7 @@
   "engines": {
     "node": ">=6.1.0"
   },
-  "description": "get all promise data even one of then failed",
+  "description": "get all promise data even one of them failed",
   "main": "dist/promise-all-end.es5.js",
   "files": [
     "dist",
