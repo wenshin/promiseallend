@@ -18,11 +18,16 @@ let errorPromise = Promise.reject('error');
 describe('', function () {
   it('输入为全部成功的 promise 数组，应该返回数组数据，且没有错误', function (done) {
     let data;
+    let error;
+    let error1;
     promiseAllEnd([Promise.resolve(1), Promise.resolve(2)])
-      .then(_data => data = _data);
+      .then(_data => data = _data, () => Promise.reject(error = true))
+      .catch(() => error1 = true)
 
     setTimeout(() => {
       assert.deepEqual(data, [1, 2], `全部成功返回所有数据。${data}`);
+      assert.ok(!error, `全部成功，不触发错误处理。${error}`);
+      assert.ok(!error1, `全部成功，不触发错误处理。${error1}`);
       done();
     }, PROMISE_DELAY)
   });
@@ -44,12 +49,15 @@ describe('', function () {
   it('输入为全部成功的 promise 对象，应该返回对象数据，且没有错误', function (done) {
     let data;
     let error;
+    let error1;
     promiseAllEnd({key1: Promise.resolve(1), key2: Promise.resolve(2)})
-      .then(_data => data = _data, _error => error = _error);
+      .then(_data => data = _data, () => error = true)
+      .catch(() => error1 = true)
 
     setTimeout(() => {
       assert.deepEqual(data, {key1: 1, key2: 2}, `全部成功返回所有数据。${data}`);
-      assert.ok(!error, '全部成功，错误为空')
+      assert.ok(!error, `全部成功，不触发错误处理。${error}`)
+      assert.ok(!error1, `全部成功，不触发错误处理。${error1}`)
       done();
     }, PROMISE_DELAY)
   });
