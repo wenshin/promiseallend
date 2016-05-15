@@ -3,8 +3,8 @@ get all promise data even one of them failed
 
 **feature**
 
-    * trigger fullfilled and rejected callback even some promise have failed
-    * support input promise array and object
+ * trigger fullfilled and rejected callback even some promise have failed
+ * support input promise array and object
 
 
 # Install
