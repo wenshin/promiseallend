@@ -46,22 +46,30 @@ describe('', function () {
     }, PROMISE_DELAY)
   });
 
-  // it('promiseAllEnd([], true).then(f, r) 和 Promise.all 行为一样', function (done) {
-  //   let data;
-  //   let error;
-  //   promiseAllEnd(
-  //     [Promise.resolve(1), errorPromise, Promise.resolve(3)],
-  //     [false, true, false]
-  //   )
-  //     .then(_data => data = _data)
-  //     .catch(_error => error = _error);
+  it('promiseAllEnd([], true) 和 Promise.all 行为一样', function (done) {
+    let promiseArrAllRequired = promiseAllEnd([Promise.resolve(1), errorPromise, Promise.resolve(3)], true)
+    let promiseObjAllRequired = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise, k3: Promise.resolve(3)}, true)
+    let records = [];
+    for (let promise of [promiseArrAllRequired, promiseObjAllRequired]) {
+      promise
+        .then(() => {
+          records.push('then fulfilled')
+        }, error => {
+          let key = promise === promiseObjAllRequired ? 'k2' : 1;
+          records.push('then rejected')
+          assert.equal(error.errorsByKey[key], 'error', `错误信息正确，${error}`)
+          assert.ok(!error.isAllRejected, `isAllRejected 应为 false，${error}`)
+        })
+        .catch(() => {
+          records.push('catch rejected')
+        });
+    }
 
-  //   setTimeout(() => {
-  //     assert.deepEqual(data, [1, undefined, 3], `不成功数据为 undefined。${data}`);
-  //     assert.ok(!error, '错误被忽略')
-  //     done();
-  //   }, PROMISE_DELAY)
-  // });
+    setTimeout(() => {
+      assert.deepEqual(records, new Array(2).fill('then rejected'), `只有错误处理。${records}`);
+      done();
+    }, PROMISE_DELAY)
+  });
 
   // it('promiseAllEnd([], false).then(f, r)，注册 onPendingChange 事件，则以 onPendingChange 的返回值作为新的 promise', function (done) {
   //   let data;
