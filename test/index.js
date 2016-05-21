@@ -30,13 +30,13 @@ describe('', function () {
       promise
         .then(data => {
           let excepted = Array.isArray(data) ? [1, 2] : {k1: 1, k2: 2};
-          assert.deepEqual(data, excepted, `数据正确${data}`)
           records.push('then fulfilled');
+          assert.deepEqual(data, excepted, `数据正确${data}`)
         }, () => {
           records.push('then rejected');
         })
-        .catch(() => {
-          records.push('catch rejected');
+        .catch(error => {
+          records.push('catch rejected', error);
         })
     }
 
@@ -55,18 +55,49 @@ describe('', function () {
         .then(() => {
           records.push('then fulfilled')
         }, error => {
-          let key = promise === promiseObjAllRequired ? 'k2' : 1;
+          let detail = Array.isArray(error.detail) ? [undefined, 'error', undefined] : {k2: 'error'};
           records.push('then rejected')
-          assert.equal(error.errorsByKey[key], 'error', `错误信息正确，${error}`)
+          assert.deepEqual(error.detail, detail, `错误详情正确，${error}`)
           assert.ok(!error.isAllRejected, `isAllRejected 应为 false，${error}`)
         })
-        .catch(() => {
-          records.push('catch rejected')
+        .catch(error => {
+          records.push('catch rejected', error)
         });
     }
 
     setTimeout(() => {
-      assert.deepEqual(records, new Array(2).fill('then rejected'), `只有错误处理。${records}`);
+      assert.deepEqual(records, new Array(2).fill('then rejected'), `事件正确响应。${records}`);
+      done();
+    }, PROMISE_DELAY)
+  });
+
+  it('promiseAllEnd([], <Array, Object>) require 为 true 的 promise 失败会处理为 rejected', function (done) {
+    let promiseArr = promiseAllEnd([Promise.resolve(1), errorPromise], [true, false])
+    let promiseArrRequired = promiseAllEnd([Promise.resolve(1), errorPromise], [false, true])
+    let promiseObj = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise}, {k1: true, k2: false})
+    let promiseObjRequired = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise}, {k1: false, k2: true})
+    let records = [];
+    for (let promise of [promiseArr, promiseArrRequired, promiseObj, promiseObjRequired]) {
+      promise
+        .then(data => {
+          let excepted = Array.isArray(data) ? [1, undefined] : {k1: 1};
+          records.push('then fulfilled')
+          assert.deepEqual(data, excepted, `忽略非必须的 promise 错误，${data}`)
+        }, error => {
+          let detail = Array.isArray(error.detail) ? [undefined, 'error'] : {k2: 'error'};
+          records.push('then rejected')
+          assert.deepEqual(error.detail, detail, `错误详情正确，${error}`)
+          assert.ok(!error.isAllRejected, `isAllRejected 应为 false，${error}`)
+        })
+        .catch(error => {
+          records.push('catch rejected', error)
+        });
+    }
+
+    setTimeout(() => {
+      assert.deepEqual(records,
+        ['then fulfilled', 'then rejected', 'then fulfilled', 'then rejected'],
+        `事件正确响应。${records}`);
       done();
     }, PROMISE_DELAY)
   });
