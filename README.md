@@ -19,13 +19,12 @@ pip i --save promiseallend
 `promiseAllEnd(promises[, requireConfig])`
 
 **Parameters**
-    **promises**: `Array` or `Object`.
 
-    **requireConfig**: `Array` or `Object` or `Boolean`, default is `false`.
-
-        * `false` means all promise is not required. only when all promises rejected will settle the return promise as rejected.
-        * `true` means all promise is required. the action is same to `Promise.all`
-        * `[true, false] | {k1: true, k2: false}` means specified promise is required. once required promise rejected will settle return promise as rejected.
+**promises**: `Array` or `Object`.
+**requireConfig**: `Array` or `Object` or `Boolean`, default is `false`.
+   * `false` means all promise is not required. only when all promises rejected will settle the return promise as rejected.
+   * `true` means all promise is required. the action is same to `Promise.all`
+   * `[true, false] | {k1: true, k2: false}` means specified promise is required. once required promise rejected will settle return promise as rejected.
 
 # Usage
 
