@@ -1,32 +1,32 @@
-promiseallend
+# promiseallend
 
 get all promise data even one of them failed
 
-feature
+## feature
 
 - trigger fullfilled and rejected callback even some promise have failed
 - support input promise array and object
 
-Install
+# Install
 
     pip i --save promiseallend
 
-API
+# API
 
-Method
+## Method
 
 `promiseAllEnd(promises[, requireConfig])`
 
-Parameters
+## Parameters
 
-- promises: Array or Object.
+- `promises`: Array or Object.
 
-- requireConfig: Array or Object or Boolean, default is false.
-    - false means all promise is not required. only when all promises rejected will settle the return promise as rejected.
-    - true means all promise is required. the action is same to Promise.all
-    - [true, false] | {k1: true, k2: false} means specified promise is required. once required promise rejected will settle return promise as rejected.
+- `requireConfig`: Array or Object or Boolean, default is false.
+    - `false` means all promise is not required. only when all promises rejected will settle the return promise as rejected.
+    - `true` means all promise is required. the action is same to Promise.all
+    - `[true, false] | {k1: true, k2: false}` means specified promise is required. once required promise rejected will settle return promise as rejected.
 
-Usage
+# Usage
 
     let promiseAllEnd = require('promiseallend');
 
@@ -64,13 +64,13 @@ Usage
 
 More usage please see test
 
-Develop
+# Develop
 
     $> npm i
     $> npm test
     $> npm publish
 
-Release Note
+# Release Note
 
 v1.1.0 2016-05-22
 
