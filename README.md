@@ -9,7 +9,7 @@ get all promise data even one of them failed
 
 # Install
 
-    pip i --save promiseallend
+    npm i --save promiseallend
 
 # API
 
