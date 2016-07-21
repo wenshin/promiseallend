@@ -1,11 +1,11 @@
 {
   "name": "promiseallend",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "engines": {
     "node": ">=6.1.0"
   },
   "description": "get all promise data even one of them failed",
-  "main": "dist/promise-all-end.es5.js",
+  "main": "dist/index.js",
   "files": [
     "dist",
     "lib",
@@ -25,7 +25,7 @@
   },
   "scripts": {
     "prepublish": "npm run mocha && npm run build",
-    "build": "node_modules/.bin/babel lib/index.js -o dist/promise-all-end.es5.js",
+    "build": "rm -r dist && mkdir dist && node_modules/.bin/babel lib -d dist",
     "test": "node_modules/.bin/nodemon --exec npm run mocha",
     "mocha": "node_modules/.bin/istanbul cover node_modules/.bin/_mocha",
     "debug-test": "npm run mocha -- debug"
