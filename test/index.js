@@ -61,9 +61,11 @@ describe('', function () {
           records.push('then fulfilled')
           _handleFinish(promise);
         }, error => {
-          let detail = Array.isArray(error.detail) ? [undefined, 'error', undefined] : {k2: 'error'};
           records.push('then rejected');
-          assert.deepEqual(error.detail, detail, `错误详情正确，${error}`);
+          const isArray = error.detail instanceof Array;
+          const key = isArray ? '1' : 'k2';
+          assert.ok(key, error.key);
+          assert.deepEqual(error.detail, 'error', `错误详情正确，${error}`);
           assert.ok(!error.isAllRejected, `isAllRejected 应为 false，${error}`);
           _handleFinish(promise);
         })
@@ -94,7 +96,7 @@ describe('', function () {
           records.push('then fulfilled');
           assert.deepEqual(data, excepted, `忽略非必须的 promise 错误，${data}`);
           _handleFinish(promise);
-        }, () => {
+        }, (error) => {
           records.push('then rejected');
           _handleFinish(promise);
         })
@@ -105,8 +107,8 @@ describe('', function () {
       set.add(promise);
       if (set.size === 4) {
         assert.deepEqual(records, [
-          'then rejected', 'then fulfilled',
-          'then rejected', 'then fulfilled'
+          'then fulfilled', 'then rejected',
+          'then fulfilled', 'then rejected'
         ], `事件正确响应。${records}`);
         done();
       }
@@ -115,10 +117,10 @@ describe('', function () {
 
   it('promiseAllEnd(<Array, Object>, {requireConfig: false}) 只有当所有 promise 都失败后才会才会处理成 rejected', function (done) {
     let promiseArr = promiseAllEnd([Promise.resolve(1), errorPromise]);
-    let promiseArrFalse = promiseAllEnd([Promise.resolve(1), errorPromise], false);
+    let promiseArrFalse = promiseAllEnd([Promise.resolve(1), errorPromise], {requireConfig: false});
     let promiseArrAllRejected = promiseAllEnd([errorPromise, errorPromise]);
     let promiseObj = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise});
-    let promiseObjFalse = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise}, false);
+    let promiseObjFalse = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise}, {requireConfig: false});
     let promiseObjAllRejected = promiseAllEnd({k1: errorPromise, k2: errorPromise});
     let records = [];
     const set = new Set();
@@ -156,23 +158,24 @@ describe('', function () {
   });
 
   it('promiseAllEnd(<Array, Object>, {unhandledRejection})', function (done) {
-    let promiseArr = promiseAllEnd([Promise.resolve(1), errorPromise], {
-      unhandledRejection(error) {
-        _handleFinish(this, error);
+    let promiseArr = promiseAllEnd([errorPromise, Promise.resolve(1), errorPromise], {
+      unhandledRejection(error, key) {
+        _handleFinish(error, key);
       }
     });
     let promiseObj = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise}, {
-      unhandledRejection(error) {
-        _handleFinish(this, error);
+      unhandledRejection(error, key) {
+        _handleFinish(error, key);
       }
     });
 
     let records = [];
+    const errorsByKey = {};
     const set = new Set();
     for (let promise of [promiseArr, promiseObj]) {
       promise
         .then(data => {
-          let excepted = Array.isArray(data) ? [1, undefined] : {k1: 1};
+          let excepted = Array.isArray(data) ? [undefined, 1, undefined] : {k1: 1};
           records.push('then fulfilled');
           assert.deepEqual(data, excepted, `忽略非必须的 promise 错误，${data}`);
         }, () => {
@@ -181,11 +184,11 @@ describe('', function () {
         .catch(error => done(error));
     }
 
-    function _handleFinish(promise, error) {
-      set.add(promise);
-      let detail = Array.isArray(error.detail) ? [undefined, 'error'] : {k2: 'error'};
-      assert.deepEqual(error.detail, detail, `获得忽略的 promise 错误，${error}`);
-      if (set.size === 2) {
+    function _handleFinish(error, key) {
+      set.add(key);
+      errorsByKey[key] = error;
+      if (set.size === 3) {
+        assert.deepEqual(errorsByKey, {0: 'error', 2: 'error', k2: 'error'});
         assert.deepEqual(records, ['then fulfilled', 'then fulfilled'], `事件正确响应。${records}`);
         done();
       }
@@ -208,9 +211,13 @@ describe('', function () {
     }, Error);
   });
 
-  it('promiseAllEnd([nestPromiseAllEnd]) will nest error info', function () {
-    assert.throws(function () {
-      promiseAllEnd([], {unhandledRejection: {}});
-    }, Error);
+  it('promiseAllEnd([nestPromiseAllEnd]) will nest error info', function (done) {
+    const promise1 = promiseAllEnd({k1: errorPromise, k2: errorPromise});
+    const promise2 = promiseAllEnd({j1: promise1, j2: errorPromise});
+    promise2
+      .catch(error => {
+        assert.deepEqual(error.detail, {j1: {k1: 'error', k2: 'error'}, j2: 'error'}, error);
+        done();
+      })
   });
 });
