@@ -160,6 +160,7 @@ describe('', function () {
   it('promiseAllEnd(<Array, Object>, {unhandledRejection})', function (done) {
     let promiseArr = promiseAllEnd([errorPromise, Promise.resolve(1), errorPromise], {
       unhandledRejection(error, key) {
+        assert.ok(typeof key === 'number', typeof key);
         _handleFinish(error, key);
       }
     });
