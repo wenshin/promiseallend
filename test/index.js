@@ -166,6 +166,7 @@ describe('', function () {
     });
     let promiseObj = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise}, {
       unhandledRejection(error, key) {
+        assert.ok(typeof key === 'string', typeof key);
         _handleFinish(error, key);
       }
     });
