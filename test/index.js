@@ -6,6 +6,9 @@ const promiseAllEnd = require('../lib');
 const ERR_RESULT = 'error';
 const errorPromise = Promise.reject(ERR_RESULT);
 
+promiseAllEnd.unhandledRejection = function unhandledRejection(err, key) {
+  console.log('global unhandledRejection', err, key)
+}
 /**
  * Test Cases
  * - promiseAllEnd([], true).then(f, r)  // the same to Promise.all
@@ -221,5 +224,17 @@ describe('', function () {
         assert.deepEqual(error.detail, {j1: {k1: 'error', k2: 'error'}, j2: 'error'}, error);
         done();
       })
+  });
+
+  it('promiseAllEnd([]|{})', function (done) {
+    const promise1 = promiseAllEnd({});
+    const promise2 = promiseAllEnd([]);
+    promiseAllEnd([promise1, promise2])
+      .then(data => {
+        assert.deepEqual(data[0], {});
+        assert.deepEqual(data[1], {});
+        done();
+      })
+      .catch(err => done(err))
   });
 });
