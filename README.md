@@ -97,6 +97,10 @@ More usage please see test
 
 # Release Note
 
+v2.0.1 2017-06-22
+    * global unhandledRejection
+    * promiseAllEnd(promises) promises is [] or {} will return [] or {}
+
 v2.0.0 2017-02-23
     * new API
 
