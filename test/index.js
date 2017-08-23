@@ -4,7 +4,6 @@ const assert = require('assert');
 const promiseAllEnd = require('../lib');
 
 const ERR_RESULT = 'error';
-const errorPromise = Promise.reject(ERR_RESULT);
 
 promiseAllEnd.unhandledRejection = function unhandledRejection(err, key) {
   console.log('global unhandledRejection', err, key)
@@ -53,6 +52,7 @@ describe('', function () {
   });
 
   it('promiseAllEnd(<Array, Object>, {requireConfig: true}) 和 Promise.all 行为一样', function (done) {
+    const errorPromise = Promise.reject(ERR_RESULT);
     let promiseArrAllRequired = promiseAllEnd([Promise.resolve(1), errorPromise, Promise.resolve(3)], {requireConfig: true});
     let promiseObjAllRequired = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise, k3: Promise.resolve(3)}, {requireConfig: true});
     let records = [];
@@ -65,11 +65,10 @@ describe('', function () {
           _handleFinish(promise);
         }, error => {
           records.push('then rejected');
-          const isArray = error.detail instanceof Array;
+          const isArray = promiseArrAllRequired === promise;
           const key = isArray ? '1' : 'k2';
-          assert.ok(key, error.key);
-          assert.deepEqual(error.detail, 'error', `错误详情正确，${error}`);
-          assert.ok(!error.isAllRejected, `isAllRejected 应为 false，${error}`);
+          assert.ok(error.message.indexOf(key) > -1, `${key} : ${error.message}`);
+          assert.ok(!error.detail, `error.detail 只有全部为 rejected 时存在，${error}`);
           _handleFinish(promise);
         })
         .catch(error => done(error));
@@ -85,6 +84,7 @@ describe('', function () {
   });
 
   it('promiseAllEnd(<Array, Object>, {requireConfig: <Array, Object>}) requireConfig 为 true 的 promise 失败会处理为 rejected', function (done) {
+    const errorPromise = Promise.reject(ERR_RESULT);
     let promiseArr = promiseAllEnd([Promise.resolve(1), errorPromise], {requireConfig: [true, false]});
     let promiseArrRequired = promiseAllEnd([Promise.resolve(1), errorPromise], {requireConfig: [false, true]});
     let promiseObj = promiseAllEnd({k1: Promise.resolve(1), k2: errorPromise}, {requireConfig: {k1: true, k2: false}});
@@ -99,7 +99,7 @@ describe('', function () {
           records.push('then fulfilled');
           assert.deepEqual(data, excepted, `忽略非必须的 promise 错误，${data}`);
           _handleFinish(promise);
-        }, (error) => {
+        }, () => {
           records.push('then rejected');
           _handleFinish(promise);
         })
@@ -119,6 +119,7 @@ describe('', function () {
   });
 
   it('promiseAllEnd(<Array, Object>, {requireConfig: false}) 只有当所有 promise 都失败后才会才会处理成 rejected', function (done) {
+    const errorPromise = Promise.reject(ERR_RESULT);
     let promiseArr = promiseAllEnd([Promise.resolve(1), errorPromise]);
     let promiseArrFalse = promiseAllEnd([Promise.resolve(1), errorPromise], {requireConfig: false});
     let promiseArrAllRejected = promiseAllEnd([errorPromise, errorPromise]);
@@ -161,6 +162,7 @@ describe('', function () {
   });
 
   it('promiseAllEnd(<Array, Object>, {unhandledRejection})', function (done) {
+    const errorPromise = Promise.reject(ERR_RESULT);
     let promiseArr = promiseAllEnd([errorPromise, Promise.resolve(1), errorPromise], {
       unhandledRejection(error, key) {
         assert.ok(typeof key === 'number', typeof key);
@@ -217,6 +219,7 @@ describe('', function () {
   });
 
   it('promiseAllEnd([nestPromiseAllEnd]) will nest error info', function (done) {
+    const errorPromise = Promise.reject(ERR_RESULT);
     const promise1 = promiseAllEnd({k1: errorPromise, k2: errorPromise});
     const promise2 = promiseAllEnd({j1: promise1, j2: errorPromise});
     promise2

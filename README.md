@@ -97,6 +97,10 @@ More usage please see test
 
 # Release Note
 
+v2.0.2 2017-08-23
+    * the error message more friendly
+    * compatibel browser and nodejs
+
 v2.0.1 2017-06-22
     * global unhandledRejection
     * promiseAllEnd(promises) promises is [] or {} will return [] or {}
